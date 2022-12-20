@@ -31,29 +31,11 @@ import { reject } from "bluebird";
 
   app.get("/filteredimage", async (req: Request, res: Response) => {
     let image_url: any = req.query.image_url;
-    switch (image_url) {
-      case (!image_url):
-        console.log("No url");
-        break;
-      case (image_url.endsWith(".jpg")):
-        console.log("Good Image");
-        break;
-    
-      default:
-        console.log("Hit defualt");
-        
-        break;
-    }
-
-
-
     if (!image_url) {
-      res.status(422).send("Enter a valid image URL");
+      res.status(422).send("Please nter a valid image URL");
     }
     if (image_url.endsWith(".jpg")) {
-      console.log("Good Image");
       let filteredimage = await filterImageFromURL(image_url);
-
       res.status(200).sendFile(filteredimage, () => {
         deleteLocalFiles([filteredimage]);
       });
@@ -62,7 +44,7 @@ import { reject } from "bluebird";
       res
         .status(422)
         .send(
-          "You have entered an unprocessable image, Please enter a valid image url."
+          "You have entered an unprocessable image URL, Please enter a valid image URL."
         );
     }
     
