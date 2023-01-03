@@ -30,24 +30,16 @@ import { reject } from "bluebird";
   /**************************************************************************** */
 
   app.get("/filteredimage", async (req: Request, res: Response) => {
-    let image_url: any = req.query.image_url;
+    let image_url: string = req.query.image_url;
     if (!image_url) {
-      res.status(422).send("Please nter a valid image URL");
+      res.status(400).send("Image url is required.");
     }
-    if (image_url.endsWith(".jpg")) {
-      let filteredimage = await filterImageFromURL(image_url);
-      res.status(200).sendFile(filteredimage, () => {
-        deleteLocalFiles([filteredimage]);
-      });
-    } else {
-      console.log("Bad man");
-      res
-        .status(422)
-        .send(
-          "You have entered an unprocessable image URL, Please enter a valid image URL."
-        );
-    }
-    
+
+    const filteredimage = await filterImageFromURL(image_url);
+
+    res.status(200).sendFile(filteredimage, ()=>{
+      deleteLocalFiles([filteredimage]);
+    })
   });
 
   //! END @TODO1
