@@ -1,8 +1,10 @@
 import express, { Router, Request, Response } from "express";
 import bodyParser from "body-parser";
 import { filterImageFromURL, deleteLocalFiles } from "./util/util";
+import * as dotenv from "dotenv";
 import { stringify } from "querystring";
 
+dotenv.config();
 (async () => {
   // Init the Express application
   const app = express();
