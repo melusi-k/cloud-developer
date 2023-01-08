@@ -7,14 +7,15 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf www/ || true",
     "build": "npm run clean && tsc && cp package.json www\\package.json && mkdir www\\tmp\\ && cd www && zip -r Archive.zip . && cd ..",
-    "dev": "ts-node-dev --respawn --transpile-only ./src/server.ts"
+    "dev": "ts-node-dev --respawn --transpile-only ./src/server.ts",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/grutt/udacity-c2-image-filter.git"
   },
   "engines": {
-    "node": "14.x"
+    "node": "19.x"
   },
   "author": "",
   "license": "ISC",
