@@ -1,7 +1,7 @@
 import express, { Router, Request, Response } from "express";
 import bodyParser from "body-parser";
 import { filterImageFromURL, deleteLocalFiles } from "./util/util";
-import { reject } from "bluebird";
+import { stringify } from "querystring";
 
 (async () => {
   // Init the Express application
@@ -30,7 +30,7 @@ import { reject } from "bluebird";
   /**************************************************************************** */
 
   app.get("/filteredimage", async (req: Request, res: Response) => {
-    let image_url: string = req.query.image_url;
+    let image_url: string = stringify.apply(req.query.image_url);
     if (!image_url) {
       res.status(400).send("Image url is required.");
     }
