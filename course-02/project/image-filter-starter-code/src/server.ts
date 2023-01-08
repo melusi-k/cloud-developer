@@ -30,15 +30,11 @@ import { stringify } from "querystring";
   /**************************************************************************** */
 
   app.get("/filteredimage", async (req: Request, res: Response) => {
-    let image_url: string = stringify.apply(req.query.image_url);
+    let image_url:string = req.query.image_url.toString();
     if (!image_url) {
       res.status(400).send("Image url is required.");
     }
 
-    if (!isValidUrl(image_url)) {
-      res.status(400).send("Invalid image url.");
-    }
-    
     try {
       const filteredpath = await filterImageFromURL(image_url);
       res.status(200).sendFile(filteredpath, () => {
@@ -50,10 +46,6 @@ import { stringify } from "querystring";
     }
   });
 
-  function isValidUrl(url: string) {
-    // Validation logic here
-    return true;
-  }
 
   //! END @TODO1
 
