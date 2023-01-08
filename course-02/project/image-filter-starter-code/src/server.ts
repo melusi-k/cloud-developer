@@ -35,11 +35,15 @@ import { reject } from "bluebird";
       res.status(400).send("Image url is required.");
     }
 
-    const filteredimage = await filterImageFromURL(image_url);
-
-    res.status(200).sendFile(filteredimage, ()=>{
-      deleteLocalFiles([filteredimage]);
-    })
+    try {
+      const filteredpath = await filterImageFromURL(image_url);
+      res.status(200).sendFile(filteredpath, () => {
+        deleteLocalFiles([filteredpath]);
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("An error occurred while processing the image.");
+    }
   });
 
   //! END @TODO1
