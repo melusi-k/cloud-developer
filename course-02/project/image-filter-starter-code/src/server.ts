@@ -35,6 +35,10 @@ import { reject } from "bluebird";
       res.status(400).send("Image url is required.");
     }
 
+    if (!isValidUrl(image_url)) {
+      res.status(400).send("Invalid image url.");
+    }
+    
     try {
       const filteredpath = await filterImageFromURL(image_url);
       res.status(200).sendFile(filteredpath, () => {
@@ -45,6 +49,11 @@ import { reject } from "bluebird";
       res.status(500).send("An error occurred while processing the image.");
     }
   });
+
+  function isValidUrl(url: string) {
+    // Validation logic here
+    return true;
+  }
 
   //! END @TODO1
 
