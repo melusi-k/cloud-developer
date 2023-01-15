@@ -1,5 +1,5 @@
-# TODO: Change the name of the org 
-org: sudkul
+# TODO: Change the name of the org - Done
+org: melusi
 app: serverless-todo-app
 service: serverless-todo-app
 
@@ -47,8 +47,8 @@ functions:
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
 
-  # TODO: Configure this function - 
-  # Provide iamRoleStatements property for performing Actions on DynamoDB
+  # TODO: Configure this function - Done 
+  # Provide iamRoleStatements property for performing Actions on DynamoDB - Done
   GetTodos:
     handler: src/lambda/http/getTodos.handler
     events:
@@ -57,10 +57,17 @@ functions:
           path: todos
           cors: true
           authorizer: Auth
+          iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+          - dynamodb:Scan
+          - dynamodb:GetItem
+        Resource: !GetAtt TodosTable.Arn
 
-  # TODO: Configure this function - 
-  # Provide iamRoleStatements property. Decide the Actions and AWS Resource. 
-  # To refer to an AWS resource defined in the "Resources" section, you can use "Resource: !GetAtt <resource-name>.Arn"
+  # TODO: Configure this function - Done
+  # Provide iamRoleStatements property. Decide the Actions and AWS Resource. - Done
+  # To refer to an AWS resource defined in the "Resources" section, you can use "Resource: !GetAtt <resource-name>.Arn" - Done
   # To validate incoming HTTP requests, we have provided the request schemas in function definition below. 
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
@@ -73,26 +80,49 @@ functions:
           request:
             schemas:
               application/json: ${file(models/create-todo-model.json)}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: !GetAtt TodosTable.Arn
 
-  # TODO: Configure this function
-  # Provide property for setting up CORS, Authorizer, iamRoleStatements, and request schemas
+  # TODO: Configure this function - Done
+  # Provide property for setting up CORS, Authorizer, iamRoleStatements, and request schemas - Done
   UpdateTodo:
     handler: src/lambda/http/updateTodo.handler
     events:
       - http:
           method: patch
           path: todos/{todoId}
+          cors: true
+          authorizer: Auth
+          request:
+            schemas:
+              application/json: ${file(models/update-todo-model.json)}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+        Resource: !GetAtt TodosTable.Arn
 
-  # TODO: Configure this function
-  # Provide property for setting up CORS, Authorizer, iamRoleStatements
+
+  # TODO: Configure this function - Done
+  # Provide property for setting up CORS, Authorizer, iamRoleStatements - Done
   DeleteTodo:
     handler: src/lambda/http/deleteTodo.handler
     events:
       - http:
           method: delete
           path: todos/{todoId}
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: !GetAtt TodosTable.Arn
 
-  # TODO: Configure this function
+  # TODO: Configure this function - Done
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
   GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
@@ -100,29 +130,95 @@ functions:
       - http:
           method: post
           path: todos/{todoId}/attachment
+          cors: true
+          authorizer: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - s3:PutObject
+          - s3:GetObject
+        Resource: !Join 
+          - '/'
+          - - !GetAtt AttachmentsBucket.Arn
+            - 'todos/*'
 
 resources:
   Resources:
     # Add necessary AWS resources. You will need at least the following AWS resources
-    # TODO: Fill the properties
+    # TODO: Fill the properties - Done
     # Feel free to change the names as you like. 
-    GatewayResponseDefault4XX:
+     GatewayResponseDefault4XX:
       Type: AWS::ApiGateway::GatewayResponse
       Properties:
+        ResponseType: DEFAULT_4XX
+        StatusCode: '404'
+        ResponseParameters:
+          gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
     
-    # TODO: Create a DynamoDB table with local secondary index and a composite key
-    TodosTable:
-      Type: AWS::DynamoDB::Table
+    # TODO: Create a DynamoDB table with local secondary index and a composite key - Done
+    Type: AWS::DynamoDB::Table
       Properties:
+        TableName: Todos-${self:provider.stage}
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        LocalSecondaryIndexes:
+          - IndexName: CreatedAtIndex
+            KeySchema:
+              - AttributeName: createdAt
+                KeyType: HASH
+            Projection:
+              ProjectionType: ALL
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
 
-    # TODO: Complete the bucket properties below. 
-    # Do not forget to add the CorsConfiguration propoerty
+    # TODO: Complete the bucket properties below. - Done
+    # Do not forget to add the CorsConfiguration propoerty - Done
     AttachmentsBucket:
       Type: AWS::S3::Bucket
       Properties:
+        BucketName: serverless-c4-todo-images-${self:provider.stage}
+        CORSConfiguration:
+          CORSRules:
+            - AllowedHeaders:
+                - "*"
+              AllowedMethods:
+                - "GET"
+                - "HEAD"
+                - "POST"
+                - "PUT"
+              AllowedOrigins:
+                - "*"
+        VersioningConfiguration:
+          Status: Enabled
+        LifecycleConfiguration:
+          Rules:
+            - Status: Enabled
+              ExpirationInDays: 30
+              Transitions:
+                - Days: 14
+                  StorageClass: STANDARD_IA
+                - Days: 30
+                  StorageClass: GLACIER
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
 
     # TODO: Complete the policy below and attach it to the bucket defined above
     # For cross referencing the name of the bucket, use "!Ref AttachmentsBucket"
     BucketPolicy:
-      Type: AWS::S3::BucketPolicy
-      Properties:
+       Type: AWS::S3::BucketPolicy
+       Properties:
+        Bucket: !Ref AttachmentsBucket
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:{}
